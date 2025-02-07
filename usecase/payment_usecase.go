@@ -5,6 +5,7 @@ import (
 	"payments/repository"
 )
 
+// PaymentUseCase interface define os métodos de serviço
 type PaymentUseCase interface {
 	GetAllPayments() ([]domain.Payment, error)
 	GetPaymentByID(id string) (domain.Payment, error)
@@ -17,6 +18,7 @@ type paymentUseCase struct {
 	paymentRepo repository.PaymentRepository
 }
 
+// NewPaymentUseCase cria uma nova instância do PaymentUseCase
 func NewPaymentUseCase(repo repository.PaymentRepository) PaymentUseCase {
 	return &paymentUseCase{repo}
 }

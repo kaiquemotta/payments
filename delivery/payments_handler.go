@@ -6,69 +6,99 @@ import (
 	"payments/usecase"
 )
 
-type PaymentHandler struct {
-	paymentUseCase usecase.PaymentUseCase
+// @Description Get All Payments
+// @ID get-all-payments
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} domain.Payment
+// @Router /payments [get]
+func GetAllPayments(useCase usecase.PaymentUseCase) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		payments, err := useCase.GetAllPayments()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+		return c.Status(fiber.StatusOK).JSON(payments)
+	}
 }
 
-func NewPaymentHandler(app *fiber.App, useCase usecase.PaymentUseCase) {
-	handler := &PaymentHandler{useCase}
-
-	app.Get("/payments", handler.GetAllPayments)
-	app.Get("/payments/:id", handler.GetPaymentByID)
-	app.Post("/payments", handler.CreatePayment)
-	app.Put("/payments/:id", handler.UpdatePayment)
-	app.Delete("/payments/:id", handler.DeletePayment)
+// @Description Get Payment by ID
+// @ID get-payment-by-id
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Payment ID"
+// @Success 200 {object} domain.Payment
+// @Failure 404 {object} map[string]string
+// @Router /payments/{id} [get]
+func GetPaymentByID(useCase usecase.PaymentUseCase) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		payment, err := useCase.GetPaymentByID(id)
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
+		}
+		return c.Status(fiber.StatusOK).JSON(payment)
+	}
 }
 
-func (h *PaymentHandler) GetAllPayments(c *fiber.Ctx) error {
-	payments, err := h.paymentUseCase.GetAllPayments()
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+// @Description Create a Payment
+// @ID create-payment
+// @Accept  json
+// @Produce  json
+// @Param payment body domain.Payment true "Create Payment"
+// @Success 201 {object} domain.Payment
+// @Failure 400 {object} map[string]string
+// @Router /payments [post]
+func CreatePayment(useCase usecase.PaymentUseCase) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		var payment domain.Payment
+		if err := c.BodyParser(&payment); err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+		if err := useCase.CreatePayment(&payment); err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+		return c.Status(fiber.StatusCreated).JSON(payment)
 	}
-	return c.JSON(payments)
 }
 
-func (h *PaymentHandler) GetPaymentByID(c *fiber.Ctx) error {
-	id := c.Params("id")
-	payment, err := h.paymentUseCase.GetPaymentByID(id)
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{"error": "Payment not found"})
+// @Description Update a Payment
+// @ID update-payment
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Payment ID"
+// @Param payment body domain.Payment true "Update Payment"
+// @Success 200 {object} domain.Payment
+// @Failure 404 {object} map[string]string
+// @Router /payments/{id} [put]
+func UpdatePayment(useCase usecase.PaymentUseCase) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		var payment domain.Payment
+		if err := c.BodyParser(&payment); err != nil {
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+		if err := useCase.UpdatePayment(id, &payment); err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
+		}
+		return c.Status(fiber.StatusOK).JSON(payment)
 	}
-	return c.JSON(payment)
 }
 
-func (h *PaymentHandler) CreatePayment(c *fiber.Ctx) error {
-	var payment domain.Payment
-	if err := c.BodyParser(&payment); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+// @Description Delete a Payment
+// @ID delete-payment
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Payment ID"
+// @Success 200 {string} string "Payment deleted"
+// @Failure 404 {object} map[string]string
+// @Router /payments/{id} [delete]
+func DeletePayment(useCase usecase.PaymentUseCase) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		if err := useCase.DeletePayment(id); err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
+		}
+		return c.Status(fiber.StatusOK).SendString("Payment deleted")
 	}
-
-	err := h.paymentUseCase.CreatePayment(&payment)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.Status(201).JSON(payment)
-}
-
-func (h *PaymentHandler) UpdatePayment(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var payment domain.Payment
-	if err := c.BodyParser(&payment); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
-	}
-
-	err := h.paymentUseCase.UpdatePayment(id, &payment)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.JSON(payment)
-}
-
-func (h *PaymentHandler) DeletePayment(c *fiber.Ctx) error {
-	id := c.Params("id")
-	err := h.paymentUseCase.DeletePayment(id)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.SendStatus(204)
 }
