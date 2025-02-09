@@ -23,7 +23,6 @@ func main() {
 		log.Fatal("Erro ao carregar o arquivo .env")
 	}
 
-	// Acessar variáveis de ambiente carregadas
 	dbPassword := os.Getenv("DB_PASSWORD")
 	if dbPassword == "" {
 		log.Fatal("DB_PASSWORD não está definido")
@@ -33,7 +32,6 @@ func main() {
 
 	// Conecta ao MongoDB
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +51,13 @@ func main() {
 	log.Println("Registrando rotas de pagamento...")
 	routes.RegisterPaymentRoutes(app, useCase)
 
-	// Inicia o servidor
-	log.Println("Servidor iniciado na porta 8080...")
-	log.Fatal(app.Listen(":8080"))
+	// Acessa a variável de ambiente PORT (Heroku define isso automaticamente)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Valor padrão para execução local
+	}
+
+	// Inicia o servidor na porta fornecida
+	log.Printf("Servidor iniciado na porta %s...", port)
+	log.Fatal(app.Listen(":" + port))
 }
