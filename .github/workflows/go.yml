@@ -1,32 +1,17 @@
-name: Deploy to Heroku
+name: Deploy
 
 on:
   push:
     branches:
-      - master  # Ou a branch que você deseja fazer o deploy
-  pull_request:
-    branches:
-      - master  # Ou a branch que você deseja fazer o deploy
+      - master
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
+  build:
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Heroku CLI
-        run: |
-          curl https://cli-assets.heroku.com/install.sh | sh
-          echo "Heroku CLI installed"
-
-      - name: Log in to Heroku
-        run: |
-          echo "${{ secrets.HEROKU_API_KEY }}" | heroku auth:token
-          echo "Logged in to Heroku"
-
-      - name: Push to Heroku
-        run: |
-          git remote add heroku https://git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
-          git push heroku main
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.13.15 # This is the action
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "payments-tec" #Must be unique in Heroku
+          heroku_email: "kaique.motta@hotmail.com"
