@@ -17,7 +17,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Heroku CLI
-        uses: akshnz/heroku-cli-action@v1
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+          echo "Heroku CLI installed"
 
       - name: Log in to Heroku
         run: |
