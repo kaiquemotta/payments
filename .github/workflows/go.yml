@@ -10,8 +10,16 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.13.15 # This is the action
+
+      # Adicionar as variáveis do GitHub Actions no Heroku
+      - name: Configurar variáveis no Heroku
+        run: |
+          heroku config:set DB_PASSWORD=${{ secrets.DB_PASSWORD }} --app payments-tec
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+
+      - uses: akhileshns/heroku-deploy@v3.13.15
         with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "payments-tec" #Must be unique in Heroku
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "payments-tec"
           heroku_email: "kaique.motta@hotmail.com"
