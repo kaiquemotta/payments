@@ -28,7 +28,7 @@ func main() {
 		log.Fatal("DB_PASSWORD não está definido")
 	}
 
-	uri := fmt.Sprintf("mongodb+srv://kaiquemotta:%s@payments.4shch.mongodb.net/?retryWrites=true&w=majority&appName=payments", dbPassword)
+	uri := fmt.Sprintf("mongodb+srv://kaiquemotta:aYDos7tDgVvOQbWL@payments.4shch.mongodb.net/?retryWrites=true&w=majority&appName=payments", dbPassword)
 
 	// Conecta ao MongoDB
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
