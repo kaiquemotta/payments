@@ -23,8 +23,8 @@ jobs:
 
       - name: Log in to Heroku
         run: |
-          echo "HEROKU_API_KEY=${{ secrets.HEROKU_API_KEY }}" > .env
-          heroku auth:token
+          echo "${{ secrets.HEROKU_API_KEY }}" | heroku auth:token
+          echo "Logged in to Heroku"
 
       - name: Push to Heroku
         run: |
