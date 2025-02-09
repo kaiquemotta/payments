@@ -1,6 +1,10 @@
 package usecase
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"payments/domain"
 	"payments/repository"
 )
@@ -11,6 +15,7 @@ type PaymentUseCase interface {
 	CreatePayment(payment *domain.Payment) (string, error) // Atualizado para retornar UUID (string) e erro
 	UpdatePayment(id string, payment *domain.Payment) error
 	DeletePayment(id string) error
+	ProcessPaymentCallback(paymentCallback *domain.PaymentCallback) error
 }
 
 type paymentUseCase struct {
@@ -45,4 +50,59 @@ func (uc *paymentUseCase) UpdatePayment(id string, payment *domain.Payment) erro
 
 func (uc *paymentUseCase) DeletePayment(id string) error {
 	return uc.paymentRepo.Delete(id)
+}
+
+func (uc *paymentUseCase) ProcessPaymentCallback(callbackData *domain.PaymentCallback) error {
+	// Primeiro, processe o pagamento como já estava fazendo
+	payment, err := uc.paymentRepo.GetByID(callbackData.PaymentID)
+	if err != nil {
+		return fmt.Errorf("payment not found: %v", err)
+	}
+	payment.Status = callbackData.Status
+
+	fmt.Println("Pagamento processado:", payment)
+
+	// Após processar o pagamento, faça um POST para o microserviço de pedidos para atualizar o status do pedido
+	err = uc.updateOrderStatus(payment.OrderId, callbackData.Status)
+	if err != nil {
+		return fmt.Errorf("error updating order status: %v", err)
+	}
+
+	return nil
+}
+
+func (uc *paymentUseCase) updateOrderStatus(orderID string, status string) error {
+	orderUpdate := map[string]interface{}{
+		"order_id": orderID,
+		"status":   status,
+	}
+
+	// Serializa o objeto para JSON
+	jsonData, err := json.Marshal(orderUpdate)
+	if err != nil {
+		return fmt.Errorf("error marshalling order data: %v", err)
+	}
+
+	// Envia o POST para o microserviço de pedidos
+	url := "https://order.free.beeceptor.com" // Altere a URL para o seu microserviço de pedidos
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("error creating HTTP request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	// Faz a requisição
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending HTTP request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to update order status: received status code %d", resp.StatusCode)
+	}
+
+	return nil
 }

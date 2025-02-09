@@ -85,3 +85,25 @@ func (h *PaymentHandler) DeletePayment(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).SendString("Payment deleted")
 }
+
+func (ph *PaymentHandler) Callback(c *fiber.Ctx) error {
+	var callbackData domain.PaymentCallback
+
+	if err := c.BodyParser(&callbackData); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	err := ph.useCase.ProcessPaymentCallback(&callbackData)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error processing payment callback",
+		})
+	}
+
+	// Retornando um "OK" ao serviço de pagamento
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Payment processed successfully",
+	})
+}

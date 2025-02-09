@@ -18,4 +18,6 @@ func RegisterPaymentRoutes(app *fiber.App, useCase usecase.PaymentUseCase) {
 	app.Post("/payments", handler.CreatePayment)
 	app.Put("/payments/:id", handler.UpdatePayment)
 	app.Delete("/payments/:id", handler.DeletePayment)
+	app.Post("/payment/callback", handler.Callback)
+
 }
