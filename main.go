@@ -19,18 +19,19 @@ import (
 
 func main() {
 
+	// Carrega variáveis de ambiente do arquivo .env
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Erro ao carregar o arquivo .env")
 	}
 
+	// Recupera a senha do banco de dados do ambiente
 	dbPassword := os.Getenv("DB_PASSWORD")
 	if dbPassword == "" {
 		log.Fatal("DB_PASSWORD não está definido")
 	}
 
-	uri := fmt.Sprintf("mongodb+srv://kaiquemotta:%s@payments.4shch.mongodb.net/?retryWrites=true&w=majority&appName=payments", dbPassword)
-
 	// Conecta ao MongoDB
+	uri := fmt.Sprintf("mongodb+srv://kaiquemotta:%s@payments.4shch.mongodb.net/?retryWrites=true&w=majority&appName=payments", dbPassword)
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
 	if err != nil {
 		log.Fatal(err)
@@ -60,4 +61,8 @@ func main() {
 	// Exibe a porta usada no log
 	log.Printf("📌 Servidor iniciando na porta: %s", port)
 
+	// Inicia o servidor na porta especificada
+	if err := app.Listen(":" + port); err != nil {
+		log.Fatal("Erro ao iniciar o servidor:", err)
+	}
 }
