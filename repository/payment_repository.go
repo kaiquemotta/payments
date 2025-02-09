@@ -45,7 +45,13 @@ func (r *paymentRepository) GetAll() ([]domain.Payment, error) {
 
 func (r *paymentRepository) GetByID(id string) (domain.Payment, error) {
 	var payment domain.Payment
-	err := r.db.Collection("payments").FindOne(context.Background(), bson.M{"_id": id}).Decode(&payment)
+
+	// Convertendo a string para ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return payment, fmt.Errorf("invalid ObjectID format: %v", err)
+	}
+	err = r.db.Collection("payments").FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&payment)
 	return payment, err
 }
 
