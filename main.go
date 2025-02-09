@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
@@ -15,8 +18,22 @@ import (
 )
 
 func main() {
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Erro ao carregar o arquivo .env")
+	}
+
+	// Acessar variáveis de ambiente carregadas
+	dbPassword := os.Getenv("DB_PASSWORD")
+	if dbPassword == "" {
+		log.Fatal("DB_PASSWORD não está definido")
+	}
+
+	uri := fmt.Sprintf("mongodb+srv://kaiquemotta:%s@payments.4shch.mongodb.net/?retryWrites=true&w=majority&appName=payments", dbPassword)
+
 	// Conecta ao MongoDB
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
+
 	if err != nil {
 		log.Fatal(err)
 	}
