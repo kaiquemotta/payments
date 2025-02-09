@@ -2,26 +2,25 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"payments/domain"
 )
 
-// PaymentRepository interface define os métodos para interagir com o banco
 type PaymentRepository interface {
 	GetAll() ([]domain.Payment, error)
 	GetByID(id string) (domain.Payment, error)
-	Create(payment *domain.Payment) error
+	Create(payment *domain.Payment) (string, error) // Atualizando para incluir a assinatura correta
 	Update(id string, payment *domain.Payment) error
 	Delete(id string) error
 }
 
-// paymentRepository é a implementação concreta do PaymentRepository
 type paymentRepository struct {
 	db *mongo.Database
 }
 
-// NewPaymentRepository cria uma nova instância do PaymentRepository
 func NewPaymentRepository(db *mongo.Database) PaymentRepository {
 	return &paymentRepository{db}
 }
@@ -50,9 +49,16 @@ func (r *paymentRepository) GetByID(id string) (domain.Payment, error) {
 	return payment, err
 }
 
-func (r *paymentRepository) Create(payment *domain.Payment) error {
-	_, err := r.db.Collection("payments").InsertOne(context.Background(), payment)
-	return err
+func (r *paymentRepository) Create(payment *domain.Payment) (string, error) {
+	result, err := r.db.Collection("payments").InsertOne(context.Background(), payment)
+	if err != nil {
+		return "", err
+	}
+	id, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return "", fmt.Errorf("failed to convert InsertedID to ObjectID")
+	}
+	return id.Hex(), nil // Retorna o UUID gerado
 }
 
 func (r *paymentRepository) Update(id string, payment *domain.Payment) error {

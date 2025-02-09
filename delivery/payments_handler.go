@@ -7,12 +7,10 @@ import (
 	"payments/usecase"
 )
 
-// PaymentHandler representa um manipulador para os endpoints de pagamentos
 type PaymentHandler struct {
 	useCase usecase.PaymentUseCase
 }
 
-// NewPaymentHandler cria um novo handler para os pagamentos
 func NewPaymentHandler(useCase usecase.PaymentUseCase) *PaymentHandler {
 	return &PaymentHandler{useCase: useCase}
 }
@@ -45,8 +43,9 @@ func (h *PaymentHandler) CreatePayment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Invalid input: " + err.Error())
 	}
 
-	// Chama o caso de uso para criar o pagamento
-	if err := h.useCase.CreatePayment(&payment); err != nil {
+	// Chama o caso de uso para criar o pagamento e obter o UUID
+	uid, err := h.useCase.CreatePayment(&payment)
+	if err != nil {
 		// Verifica se o erro é de tipo inválido (InvalidPaymentTypeError)
 		var invalidErr *domain.InvalidPaymentTypeError
 		if errors.As(err, &invalidErr) {
@@ -59,8 +58,10 @@ func (h *PaymentHandler) CreatePayment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error: " + err.Error())
 	}
 
-	// Retorna a resposta 201 (Created) com o pagamento criado
-	return c.Status(fiber.StatusCreated).JSON(payment)
+	// Retorna a resposta 201 (Created) com o UUID gerado
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"uuid": uid,
+	})
 }
 
 // UpdatePayment atualiza um pagamento existente

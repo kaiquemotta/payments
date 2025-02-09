@@ -5,11 +5,10 @@ import (
 	"payments/repository"
 )
 
-// PaymentUseCase interface define os métodos de serviço
 type PaymentUseCase interface {
 	GetAllPayments() ([]domain.Payment, error)
 	GetPaymentByID(id string) (domain.Payment, error)
-	CreatePayment(payment *domain.Payment) error
+	CreatePayment(payment *domain.Payment) (string, error) // Atualizado para retornar UUID (string) e erro
 	UpdatePayment(id string, payment *domain.Payment) error
 	DeletePayment(id string) error
 }
@@ -31,11 +30,12 @@ func (uc *paymentUseCase) GetPaymentByID(id string) (domain.Payment, error) {
 	return uc.paymentRepo.GetByID(id)
 }
 
-func (uc *paymentUseCase) CreatePayment(payment *domain.Payment) error {
+func (uc *paymentUseCase) CreatePayment(payment *domain.Payment) (string, error) {
 	// A validação de tipo de pagamento será feita no domínio
 	if err := payment.PaymentType.IsValid(); err != nil {
-		return err // Erro retornado pela camada de domínio
+		return "", err // Erro retornado pela camada de domínio
 	}
+	// Chama o repositório para criar o pagamento e obter o ID gerado
 	return uc.paymentRepo.Create(payment)
 }
 
