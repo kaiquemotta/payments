@@ -60,6 +60,6 @@ func main() {
 	// Exibe a porta usada no log
 	log.Printf("📌 Servidor iniciando na porta: %s", port)
 
-	// Inicia o servidor na porta fornecida
-	log.Fatal(app.Listen(":" + port))
+	// 🔹 IMPORTANTE: O Heroku exige que o app escute em 0.0.0.0
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
