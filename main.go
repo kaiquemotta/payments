@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,5 +62,5 @@ func main() {
 	log.Printf("📌 Servidor iniciando na porta: %s", port)
 
 	// 🔹 IMPORTANTE: O Heroku exige que o app escute em 0.0.0.0
-	log.Fatal(app.Listen("0.0.0.0:" + port))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
