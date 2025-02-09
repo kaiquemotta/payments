@@ -15,6 +15,7 @@ func InitDB() {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
+
 		log.Fatal("Erro ao conectar ao MongoDB:", err)
 	}
 

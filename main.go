@@ -33,8 +33,10 @@ func main() {
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Registra as rotas de pagamento
+	log.Println("Registrando rotas de pagamento...")
 	routes.RegisterPaymentRoutes(app, useCase)
 
 	// Inicia o servidor
+	log.Println("Servidor iniciado na porta 8080...")
 	log.Fatal(app.Listen(":8080"))
 }

@@ -32,6 +32,10 @@ func (uc *paymentUseCase) GetPaymentByID(id string) (domain.Payment, error) {
 }
 
 func (uc *paymentUseCase) CreatePayment(payment *domain.Payment) error {
+	// A validação de tipo de pagamento será feita no domínio
+	if err := payment.PaymentType.IsValid(); err != nil {
+		return err // Erro retornado pela camada de domínio
+	}
 	return uc.paymentRepo.Create(payment)
 }
 
