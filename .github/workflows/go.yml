@@ -3,10 +3,10 @@ name: Deploy to Heroku
 on:
   push:
     branches:
-      - main  # Ou a branch que você deseja fazer o deploy
+      - master  # Ou a branch que você deseja fazer o deploy
   pull_request:
     branches:
-      - main  # Ou a branch que você deseja fazer o deploy
+      - master  # Ou a branch que você deseja fazer o deploy
 
 jobs:
   deploy:
