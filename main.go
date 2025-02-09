@@ -57,7 +57,9 @@ func main() {
 		port = "8080" // Valor padrão para execução local
 	}
 
+	// Exibe a porta usada no log
+	log.Printf("📌 Servidor iniciando na porta: %s", port)
+
 	// Inicia o servidor na porta fornecida
-	log.Printf("Servidor iniciado na porta %s...", port)
 	log.Fatal(app.Listen(":" + port))
 }
