@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	_ "payments/docs" // Importa a documentação gerada pelo Swagger
@@ -30,12 +30,28 @@ func main() {
 		log.Fatal("DB_PASSWORD não está definido")
 	}
 
-	// Conecta ao MongoDB
+	// Construa a URI de conexão com MongoDB
 	uri := fmt.Sprintf("mongodb+srv://kaiquemotta:%s@payments.4shch.mongodb.net/?retryWrites=true&w=majority&appName=payments", dbPassword)
+
+	// Log para verificar a URL de conexão
+	log.Printf("📝 URL de conexão com MongoDB: %s", uri)
+
+	// Conecta ao MongoDB
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Erro ao conectar ao MongoDB:", err)
 	}
+
+	// Testa a conexão com o MongoDB
+	err = client.Ping(context.Background(), nil)
+	if err != nil {
+		log.Fatal("Erro ao testar a conexão com o MongoDB:", err)
+	}
+
+	// Log de sucesso na conexão
+	log.Println("✅ Conexão com MongoDB realizada com sucesso!")
+
+	// Acessa o banco de dados
 	db := client.Database("paymentDB")
 
 	// Cria o repositório e o caso de uso
