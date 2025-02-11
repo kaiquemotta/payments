@@ -68,11 +68,26 @@ func (r *paymentRepository) Create(payment *domain.Payment) (string, error) {
 }
 
 func (r *paymentRepository) Update(id string, payment *domain.Payment) error {
-	_, err := r.db.Collection("payments").UpdateOne(context.Background(), bson.M{"_id": id}, bson.M{"$set": payment})
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid ObjectID format: %v", err)
+	}
+	_, err = r.db.Collection("payments").UpdateOne(
+		context.Background(),
+		bson.M{"_id": objectID}, // Usando ObjectID em vez de string
+		bson.M{"$set": payment},
+	)
 	return err
 }
 
 func (r *paymentRepository) Delete(id string) error {
-	_, err := r.db.Collection("payments").DeleteOne(context.Background(), bson.M{"_id": id})
+	// Convertendo a string para ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid ObjectID format: %v", err)
+	}
+
+	// Deletando o documento com o ObjectID convertido
+	_, err = r.db.Collection("payments").DeleteOne(context.Background(), bson.M{"_id": objectID})
 	return err
 }

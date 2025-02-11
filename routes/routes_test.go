@@ -98,13 +98,13 @@ func TestRegisterPaymentRoutes(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json") // Definir o Content-Type é essencial
 
 		resp, _ := app.Test(req)
-		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, 204, resp.StatusCode)
 	})
 
 	t.Run("Test DeletePayment Route", func(t *testing.T) {
 		req := httptest.NewRequest("DELETE", "/payments/1", nil)
 		resp, _ := app.Test(req)
-		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, 204, resp.StatusCode)
 	})
 
 	t.Run("Test Callback Route", func(t *testing.T) {

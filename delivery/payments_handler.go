@@ -74,16 +74,15 @@ func (h *PaymentHandler) UpdatePayment(c *fiber.Ctx) error {
 	if err := h.useCase.UpdatePayment(id, &payment); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
 	}
-	return c.Status(fiber.StatusOK).JSON(payment)
+	return c.Status(fiber.StatusNoContent).Send(nil)
 }
 
-// DeletePayment remove um pagamento
 func (h *PaymentHandler) DeletePayment(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if err := h.useCase.DeletePayment(id); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
 	}
-	return c.Status(fiber.StatusOK).SendString("Payment deleted")
+	return c.Status(fiber.StatusNoContent).Send(nil)
 }
 
 func (ph *PaymentHandler) Callback(c *fiber.Ctx) error {

@@ -45,10 +45,24 @@ func (uc *paymentUseCase) CreatePayment(payment *domain.Payment) (string, error)
 }
 
 func (uc *paymentUseCase) UpdatePayment(id string, payment *domain.Payment) error {
+	// Chama o use case para verificar se o pagamento existe
+	_, err := uc.GetPaymentByID(id)
+	if err != nil {
+		// Retorna erro se o pagamento não for encontrado
+		return fmt.Errorf("payment not found: %v", err)
+	}
+	// Se o pagamento existe, chama o método de atualização no repositório
 	return uc.paymentRepo.Update(id, payment)
 }
 
 func (uc *paymentUseCase) DeletePayment(id string) error {
+	// Chama o use case para verificar se o pagamento existe
+	_, err := uc.GetPaymentByID(id)
+	if err != nil {
+		// Retorna erro se o pagamento não for encontrado
+		return fmt.Errorf("payment not found: %v", err)
+	}
+	// Se o pagamento existe, chama o método de deleção
 	return uc.paymentRepo.Delete(id)
 }
 
