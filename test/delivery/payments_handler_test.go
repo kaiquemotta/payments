@@ -9,11 +9,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http/httptest"
+	delivery2 "payments/delivery"
 	"payments/domain"
 	"testing"
 )
 
-// MockPaymentUseCase é um mock para o PaymentUseCase
+const PaymentsEndpoint = "/payments"
+
 type MockPaymentUseCase struct {
 	mock.Mock
 }
@@ -56,15 +58,15 @@ func (m *MockPaymentUseCase) ProcessPaymentCallback(paymentCallback *domain.Paym
 
 func TestPaymentHandler_GetAllPayments_Success(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 	mockPayments := []domain.Payment{
 		{ID: primitive.NewObjectID(), Amount: 100},
 		{ID: primitive.NewObjectID(), Amount: 200},
 	}
 	mockUseCase.On("GetAllPayments").Return(mockPayments, nil)
 	app := fiber.New()
-	app.Get("/payments", handler.GetAllPayments)
-	req := httptest.NewRequest("GET", "/payments", nil)
+	app.Get(PaymentsEndpoint, handler.GetAllPayments)
+	req := httptest.NewRequest("GET", PaymentsEndpoint, nil)
 	resp, err := app.Test(req)
 	assert.Nil(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
@@ -75,11 +77,11 @@ func TestPaymentHandler_GetAllPayments_Success(t *testing.T) {
 
 func TestPaymentHandler_GetAllPayments_Error(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 	mockUseCase.On("GetAllPayments").Return([]domain.Payment{}, errors.New("Internal server error"))
 	app := fiber.New()
-	app.Get("/payments", handler.GetAllPayments)
-	req := httptest.NewRequest("GET", "/payments", nil)
+	app.Get(PaymentsEndpoint, handler.GetAllPayments)
+	req := httptest.NewRequest("GET", PaymentsEndpoint, nil)
 	resp, err := app.Test(req)
 	assert.Nil(t, err)
 	assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
@@ -87,7 +89,7 @@ func TestPaymentHandler_GetAllPayments_Error(t *testing.T) {
 
 func TestPaymentHandler_GetPaymentByID_Success(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	mockPayment := domain.Payment{
 		ID:     primitive.NewObjectID(),
@@ -95,8 +97,8 @@ func TestPaymentHandler_GetPaymentByID_Success(t *testing.T) {
 	}
 	mockUseCase.On("GetPaymentByID", mockPayment.ID.Hex()).Return(mockPayment, nil)
 	app := fiber.New()
-	app.Get("/payments/:id", handler.GetPaymentByID)
-	req := httptest.NewRequest("GET", "/payments/"+mockPayment.ID.Hex(), nil)
+	app.Get(PaymentsEndpoint+"/:id", handler.GetPaymentByID)
+	req := httptest.NewRequest("GET", PaymentsEndpoint+"/"+mockPayment.ID.Hex(), nil)
 	resp, err := app.Test(req)
 
 	assert.Nil(t, err)
@@ -110,14 +112,14 @@ func TestPaymentHandler_GetPaymentByID_Success(t *testing.T) {
 
 func TestPaymentHandler_GetPaymentByID_NotFound(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	mockUseCase.On("GetPaymentByID", "invalid-id").Return(domain.Payment{}, errors.New("Payment not found"))
 
 	app := fiber.New()
-	app.Get("/payments/:id", handler.GetPaymentByID)
+	app.Get(PaymentsEndpoint+"/:id", handler.GetPaymentByID)
 
-	req := httptest.NewRequest("GET", "/payments/invalid-id", nil)
+	req := httptest.NewRequest("GET", PaymentsEndpoint+"/invalid-id", nil)
 	resp, err := app.Test(req)
 
 	assert.Nil(t, err)
@@ -126,7 +128,7 @@ func TestPaymentHandler_GetPaymentByID_NotFound(t *testing.T) {
 
 func TestPaymentHandler_CreatePayment_Success(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	mockPayment := domain.Payment{
 		Amount: 150,
@@ -135,10 +137,10 @@ func TestPaymentHandler_CreatePayment_Success(t *testing.T) {
 	mockUseCase.On("CreatePayment", &mockPayment).Return(mockUUID, nil)
 
 	app := fiber.New()
-	app.Post("/payments", handler.CreatePayment)
+	app.Post(PaymentsEndpoint, handler.CreatePayment)
 
 	body, _ := json.Marshal(mockPayment)
-	req := httptest.NewRequest("POST", "/payments", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", PaymentsEndpoint, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
@@ -152,12 +154,12 @@ func TestPaymentHandler_CreatePayment_Success(t *testing.T) {
 
 func TestPaymentHandler_CreatePayment_InvalidInput(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	app := fiber.New()
-	app.Post("/payments", handler.CreatePayment)
+	app.Post(PaymentsEndpoint, handler.CreatePayment)
 
-	req := httptest.NewRequest("POST", "/payments", bytes.NewReader([]byte("invalid")))
+	req := httptest.NewRequest("POST", PaymentsEndpoint, bytes.NewReader([]byte("invalid")))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
@@ -167,7 +169,7 @@ func TestPaymentHandler_CreatePayment_InvalidInput(t *testing.T) {
 
 func TestPaymentHandler_CreatePayment_UnprocessableEntity(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	mockPayment := domain.Payment{
 		Amount: 150,
@@ -175,10 +177,10 @@ func TestPaymentHandler_CreatePayment_UnprocessableEntity(t *testing.T) {
 	mockUseCase.On("CreatePayment", &mockPayment).Return("", &domain.InvalidPaymentTypeError{Type: "CreditCard"})
 
 	app := fiber.New()
-	app.Post("/payments", handler.CreatePayment)
+	app.Post(PaymentsEndpoint, handler.CreatePayment)
 
 	body, _ := json.Marshal(mockPayment)
-	req := httptest.NewRequest("POST", "/payments", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", PaymentsEndpoint, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
@@ -188,7 +190,7 @@ func TestPaymentHandler_CreatePayment_UnprocessableEntity(t *testing.T) {
 
 func TestPaymentHandler_CreatePayment_InternalServerError(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	mockPayment := domain.Payment{
 		Amount: 150,
@@ -196,10 +198,10 @@ func TestPaymentHandler_CreatePayment_InternalServerError(t *testing.T) {
 	mockUseCase.On("CreatePayment", &mockPayment).Return("", errors.New("unexpected error"))
 
 	app := fiber.New()
-	app.Post("/payments", handler.CreatePayment)
+	app.Post(PaymentsEndpoint, handler.CreatePayment)
 
 	body, _ := json.Marshal(mockPayment)
-	req := httptest.NewRequest("POST", "/payments", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", PaymentsEndpoint, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
 
@@ -209,7 +211,7 @@ func TestPaymentHandler_CreatePayment_InternalServerError(t *testing.T) {
 
 func TestPaymentHandler_UpdatePayment_Success(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	paymentID := "60c72b2f9af1c88b8f8d3b4a"
 	mockPayment := domain.Payment{Amount: 300}
@@ -217,10 +219,10 @@ func TestPaymentHandler_UpdatePayment_Success(t *testing.T) {
 	mockUseCase.On("UpdatePayment", paymentID, &mockPayment).Return(nil)
 
 	app := fiber.New()
-	app.Put("/payments/:id", handler.UpdatePayment)
+	app.Put(PaymentsEndpoint+"/:id", handler.UpdatePayment)
 
 	body, _ := json.Marshal(mockPayment)
-	req := httptest.NewRequest("PUT", "/payments/"+paymentID, bytes.NewReader(body))
+	req := httptest.NewRequest("PUT", PaymentsEndpoint+"/"+paymentID, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req)
@@ -230,13 +232,13 @@ func TestPaymentHandler_UpdatePayment_Success(t *testing.T) {
 
 func TestPaymentHandler_UpdatePayment_BadRequest(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	app := fiber.New()
-	app.Put("/payments/:id", handler.UpdatePayment)
+	app.Put(PaymentsEndpoint+"/:id", handler.UpdatePayment)
 
 	invalidBody := "{invalid json}"
-	req := httptest.NewRequest("PUT", "/payments/60c72b2f9af1c88b8f8d3b4a", bytes.NewReader([]byte(invalidBody)))
+	req := httptest.NewRequest("PUT", PaymentsEndpoint+"/60c72b2f9af1c88b8f8d3b4a", bytes.NewReader([]byte(invalidBody)))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req)
@@ -246,7 +248,7 @@ func TestPaymentHandler_UpdatePayment_BadRequest(t *testing.T) {
 
 func TestPaymentHandler_UpdatePayment_NotFound(t *testing.T) {
 	mockUseCase := new(MockPaymentUseCase)
-	handler := NewPaymentHandler(mockUseCase)
+	handler := delivery2.NewPaymentHandler(mockUseCase)
 
 	paymentID := "60c72b2f9af1c88b8f8d3b4a"
 	mockPayment := domain.Payment{Amount: 300}
@@ -254,10 +256,10 @@ func TestPaymentHandler_UpdatePayment_NotFound(t *testing.T) {
 	mockUseCase.On("UpdatePayment", paymentID, &mockPayment).Return(errors.New("Payment not found"))
 
 	app := fiber.New()
-	app.Put("/payments/:id", handler.UpdatePayment)
+	app.Put(PaymentsEndpoint+"/:id", handler.UpdatePayment)
 
 	body, _ := json.Marshal(mockPayment)
-	req := httptest.NewRequest("PUT", "/payments/"+paymentID, bytes.NewReader(body))
+	req := httptest.NewRequest("PUT", PaymentsEndpoint+"/"+paymentID, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req)
@@ -268,7 +270,7 @@ func TestPaymentHandler_UpdatePayment_NotFound(t *testing.T) {
 func TestPaymentHandler_DeletePayment(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockUseCase := new(MockPaymentUseCase)
-		handler := NewPaymentHandler(mockUseCase)
+		handler := delivery2.NewPaymentHandler(mockUseCase)
 
 		mockUseCase.On("DeletePayment", "valid-id").Return(nil)
 
@@ -284,14 +286,14 @@ func TestPaymentHandler_DeletePayment(t *testing.T) {
 
 	t.Run("Payment Not Found", func(t *testing.T) {
 		mockUseCase := new(MockPaymentUseCase)
-		handler := NewPaymentHandler(mockUseCase)
+		handler := delivery2.NewPaymentHandler(mockUseCase)
 
 		mockUseCase.On("DeletePayment", "invalid-id").Return(errors.New("payment not found"))
 
 		app := fiber.New()
-		app.Delete("/payments/:id", handler.DeletePayment)
+		app.Delete(PaymentsEndpoint+"/:id", handler.DeletePayment)
 
-		req := httptest.NewRequest("DELETE", "/payments/invalid-id", nil)
+		req := httptest.NewRequest("DELETE", PaymentsEndpoint+"/invalid-id", nil)
 		resp, err := app.Test(req)
 
 		assert.Nil(t, err)
@@ -306,7 +308,7 @@ func TestPaymentHandler_DeletePayment(t *testing.T) {
 func TestPaymentHandler_Callback(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockUseCase := new(MockPaymentUseCase)
-		handler := NewPaymentHandler(mockUseCase)
+		handler := delivery2.NewPaymentHandler(mockUseCase)
 
 		callbackData := domain.PaymentCallback{
 			PaymentID: "123456",
@@ -337,7 +339,7 @@ func TestPaymentHandler_Callback(t *testing.T) {
 
 	t.Run("Invalid Request Body", func(t *testing.T) {
 		mockUseCase := new(MockPaymentUseCase)
-		handler := NewPaymentHandler(mockUseCase)
+		handler := delivery2.NewPaymentHandler(mockUseCase)
 
 		app := fiber.New()
 		app.Post("/callback", handler.Callback)
@@ -357,7 +359,7 @@ func TestPaymentHandler_Callback(t *testing.T) {
 
 	t.Run("Internal Server Error", func(t *testing.T) {
 		mockUseCase := new(MockPaymentUseCase)
-		handler := NewPaymentHandler(mockUseCase)
+		handler := delivery2.NewPaymentHandler(mockUseCase)
 
 		callbackData := domain.PaymentCallback{
 			PaymentID: "123456",

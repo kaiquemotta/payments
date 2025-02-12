@@ -7,6 +7,8 @@ import (
 	"payments/usecase"
 )
 
+const ErrPaymentNotFound = "Payment not found"
+
 type PaymentHandler struct {
 	useCase usecase.PaymentUseCase
 }
@@ -29,7 +31,7 @@ func (h *PaymentHandler) GetPaymentByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	payment, err := h.useCase.GetPaymentByID(id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
+		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": ErrPaymentNotFound})
 	}
 	return c.Status(fiber.StatusOK).JSON(payment)
 }
@@ -72,7 +74,7 @@ func (h *PaymentHandler) UpdatePayment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 	if err := h.useCase.UpdatePayment(id, &payment); err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
+		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": ErrPaymentNotFound})
 	}
 	return c.Status(fiber.StatusNoContent).Send(nil)
 }
@@ -80,7 +82,7 @@ func (h *PaymentHandler) UpdatePayment(c *fiber.Ctx) error {
 func (h *PaymentHandler) DeletePayment(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if err := h.useCase.DeletePayment(id); err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": "Payment not found"})
+		return c.Status(fiber.StatusNotFound).JSON(map[string]string{"error": ErrPaymentNotFound})
 	}
 	return c.Status(fiber.StatusNoContent).Send(nil)
 }

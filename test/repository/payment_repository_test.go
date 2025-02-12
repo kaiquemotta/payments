@@ -7,13 +7,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"payments/domain"
+	repository2 "payments/repository"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 var db *mongo.Database
-var paymentRepo PaymentRepository
+var paymentRepo repository2.PaymentRepository
 
 // Setup de testes, criando uma conexão com o MongoDB em memória
 func TestMain(m *testing.M) {
@@ -28,7 +29,7 @@ func TestMain(m *testing.M) {
 		return
 	}
 	db = client.Database("testdb")
-	paymentRepo = NewPaymentRepository(db)
+	paymentRepo = repository2.NewPaymentRepository(db)
 
 	// Limpa a coleção antes de começar os testes
 	_ = db.Collection("payments").Drop(context.Background())

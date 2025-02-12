@@ -2,11 +2,12 @@ package domain
 
 import (
 	"github.com/stretchr/testify/assert"
+	domain2 "payments/domain"
 	"testing"
 )
 
 func TestPaymentCallbackInitialization(t *testing.T) {
-	callback := PaymentCallback{
+	callback := domain2.PaymentCallback{
 		PaymentID: "12345",
 		Status:    "success",
 		Amount:    150.75,

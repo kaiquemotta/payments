@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"net/http/httptest"
 	"payments/domain"
+	routes2 "payments/routes"
 	"strings"
 	"testing"
 )
@@ -56,7 +57,7 @@ func TestRegisterPaymentRoutes(t *testing.T) {
 
 	app := fiber.New()
 
-	RegisterPaymentRoutes(app, mockUseCase)
+	routes2.RegisterPaymentRoutes(app, mockUseCase)
 
 	t.Run("Test GetAllPayments Route", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/payments", nil)
