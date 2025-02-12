@@ -1,4 +1,3 @@
-// Em um arquivo no pacote 'domain', por exemplo, payment_callback.go
 package domain
 
 type PaymentCallback struct {
