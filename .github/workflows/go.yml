@@ -65,7 +65,7 @@ jobs:
 
       - name: Configurar variáveis no Heroku
         run: |
-          heroku config:set DB_PASSWORD=${{ secrets.DB_PASSWORD }} --app payments-tec-pre
+          heroku config:set DB_PASSWORD=${{ secrets.DB_PASSWORD }} --app payments-tec
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
