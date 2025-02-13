@@ -3,8 +3,12 @@ name: Deploy
 on:
   push:
     branches:
-      - master
-      - main
+      - master  # A branch principal onde o deploy PRE será feito
+      - main     # Se você usar `main`, adicione ela também
+
+  # Isso permite deploy em produção quando um release é feito
+  release:
+    types: [created]  # Ação disparada quando um release é criado
 
 jobs:
   # Job para Build
@@ -55,6 +59,7 @@ jobs:
   deploy_pre:
     runs-on: ubuntu-22.04
     needs: sonarqube # Esse job vai rodar somente após a análise no SonarQube
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'  # Só executa na master ou main
     steps:
       - uses: actions/checkout@v2
 
@@ -67,14 +72,14 @@ jobs:
       - uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "payments-tec-pre"
+          heroku_app_name: "payments-tec"
           heroku_email: "kaique.motta@hotmail.com"
 
-  # Job para Deploy em Produção (será ativado quando você precisar)
+  # Job para Deploy em Produção
   deploy_prod:
     runs-on: ubuntu-22.04
     needs: sonarqube # Esse job será o próximo a rodar, após a análise do SonarQube
-    if: github.ref == 'refs/heads/master' # Só roda em 'master' para produção
+    if: github.event_name == 'release' && github.event.action == 'created'  # Só vai rodar quando um release for criado
     steps:
       - uses: actions/checkout@v2
 
