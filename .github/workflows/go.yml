@@ -20,8 +20,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-        # Se necessário, configure seu host do SonarQube aqui
-        # SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: https://sonarcloud.io  # Usado se você estiver no SonarCloud
 
   build:
     runs-on: ubuntu-22.04
