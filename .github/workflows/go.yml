@@ -4,10 +4,28 @@ on:
   push:
     branches:
       - master
+      - main
 
 jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Disabling shallow clones is recommended for improving the relevancy of reporting
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarcloud-github-action@v1.0.0 # ou a versão mais recente disponível
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+        # Se necessário, configure seu host do SonarQube aqui
+        # SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
   build:
     runs-on: ubuntu-22.04
+    needs: sonarqube # Isso garante que o deploy no Heroku só acontece após o SonarQube ser executado com sucesso
     steps:
       - uses: actions/checkout@v2
 
