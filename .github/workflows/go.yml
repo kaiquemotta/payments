@@ -18,7 +18,7 @@ jobs:
       - name: SonarQube Scan
         uses: sonarsource/sonarcloud-github-action@v4.0.0 # ou a versão mais recente disponível
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: 2310e584ff3ea5f35cf7ebcde2d2e1dda72f7f58
         with:
           SONAR_HOST_URL: https://sonarcloud.io  # Usado se você estiver no SonarCloud
 
