@@ -24,6 +24,11 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     needs: build
+    services:
+      mongo:
+        image: mongo
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +38,15 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.21
+
+      - name: Esperar o MongoDB iniciar
+        run: |
+          for i in {1..30}; do
+            nc -z localhost 27017 && echo "MongoDB está rodando!" && exit 0
+            echo "Aguardando MongoDB..."
+            sleep 2
+          done
+          echo "MongoDB não iniciou!" && exit 1
 
       - name: Run Tests with Coverage
         run: |
