@@ -3,18 +3,17 @@ name: Deploy
 on:
   push:
     branches:
-      - master  # A branch principal onde o deploy PRE será feito
-      - main    # Se você usar `main`, adicione ela também
+      - master
+      - main
 
   release:
-    types: [created]  # Ação disparada quando um release é criado
+    types: [created]
 
 jobs:
-  # Job para Build
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -22,41 +21,39 @@ jobs:
         run: |
           echo "Construindo o projeto..."
 
-  # Job para Testes com Cobertura
   test:
     runs-on: ubuntu-22.04
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21  # Ajuste para a versão que você usa
+          go-version: 1.21
 
       - name: Run Tests with Coverage
         run: |
           go test -v ./... -coverprofile=coverage.out
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: coverage.out
 
-  # Job para Análise no SonarQube
   sonarqube:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Download coverage report
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage
 
@@ -73,13 +70,12 @@ jobs:
             -Dsonar.tests=.
             -Dsonar.go.coverage.reportPaths=coverage.out
 
-  # Job para Deploy em Pré-Produção
   deploy_pre:
     runs-on: ubuntu-22.04
     needs: sonarqube
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Configurar variáveis no Heroku
         run: |
@@ -93,13 +89,12 @@ jobs:
           heroku_app_name: "payments-tec"
           heroku_email: "kaique.motta@hotmail.com"
 
-  # Job para Deploy em Produção
   deploy_prod:
     runs-on: ubuntu-22.04
     needs: sonarqube
     if: github.event_name == 'release' && github.event.action == 'created'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Configurar variáveis no Heroku
         run: |
