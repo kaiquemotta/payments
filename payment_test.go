@@ -1,7 +1,8 @@
-package usecase
+package main
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -73,11 +74,17 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 // Rodando os testes
 func TestMain(m *testing.M) {
-	status := godog.TestSuite{
-		ScenarioInitializer: InitializeScenario,
-	}.Run()
-
-	if status != 0 {
-		m.Run()
+	opts := godog.Options{
+		Format: "pretty",                                // Define o formato da saída
+		Paths:  []string{"../features/payment.feature"}, // Caminho para o arquivo de feature
 	}
+	status := godog.TestSuite{
+		Name:                "godogs",
+		ScenarioInitializer: InitializeScenario,
+		Options:             &opts,
+	}.Run()
+	if st := m.Run(); st > status {
+		status = st
+	}
+	os.Exit(status)
 }
