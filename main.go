@@ -33,5 +33,4 @@ func main() {
 	if err := app.Listen(":" + port); err != nil {
 		log.Fatal("Erro ao iniciar o servidor:", err)
 	}
-
 }
