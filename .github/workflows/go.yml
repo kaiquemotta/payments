@@ -5,7 +5,10 @@ on:
     branches:
       - master
       - main
-
+  pull_request:
+    branches:
+      - master
+      - main
   release:
     types: [created]
 
@@ -121,3 +124,20 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: "payments-tec-prod"
           heroku_email: "kaique.motta@hotmail.com"
+
+  check_coverage:
+    runs-on: ubuntu-latest
+    needs: sonarqube
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Quality Gate Check
+        run: |
+          sonar_status=$(curl -s -u ${{ secrets.SONAR_TOKEN }} "https://sonarcloud.io/api/qualitygates/project_status?projectKey=kaiquemotta_payments")
+          coverage=$(echo $sonar_status | jq '.projectStatus.status')
+          if [ "$coverage" != "\"OK\"" ]; then
+            echo "SonarQube Quality Gate failed: Coverage is below 70%" && exit 1
+          fi
