@@ -4,3 +4,4 @@ Feature: Criar Pagamento
     Given que tenho um pagamento válido
     When eu tentar criar o pagamento
     Then o pagamento deve ser criado com sucesso
+
