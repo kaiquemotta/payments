@@ -1,4 +1,4 @@
-package main
+package godog_tests
 
 import (
 	"errors"
@@ -75,8 +75,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 // Rodando os testes
 func TestMain(m *testing.M) {
 	opts := godog.Options{
-		Format: "pretty",                                // Define o formato da saída
-		Paths:  []string{"../features/payment.feature"}, // Caminho para o arquivo de feature
+		Format: "pretty", // Define o formato da saída
+		Paths:  []string{"../../features/payment.feature"},
 	}
 	status := godog.TestSuite{
 		Name:                "godogs",
