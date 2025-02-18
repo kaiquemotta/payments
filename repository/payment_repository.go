@@ -56,6 +56,7 @@ func (r *paymentRepository) GetByID(id string) (domain.Payment, error) {
 }
 
 func (r *paymentRepository) Create(payment *domain.Payment) (string, error) {
+	payment.Status = "Em processamento"
 	result, err := r.db.Collection("payments").InsertOne(context.Background(), payment)
 	if err != nil {
 		return "", err
