@@ -87,26 +87,21 @@ func (uc *paymentUseCase) ProcessPaymentCallback(callbackData *domain.PaymentCal
 
 func (uc *paymentUseCase) updateOrderStatus(orderID string, status string) error {
 	orderUpdate := map[string]interface{}{
-		"order_id": orderID,
-		"status":   status,
+		"status": "Finalizado",
 	}
-
-	// Serializa o objeto para JSON
 	jsonData, err := json.Marshal(orderUpdate)
 	if err != nil {
 		return fmt.Errorf("error marshalling order data: %v", err)
 	}
 
-	// Envia o POST para o microserviço de pedidos
-	url := "https://order.free.beeceptor.com" // Altere a URL para o seu microserviço de pedidos
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	url := "https://api-ms-order-6ec42f917adf.herokuapp.com/orders/" + orderID
+	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("error creating HTTP request: %v", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
-	// Faz a requisição
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -114,7 +109,7 @@ func (uc *paymentUseCase) updateOrderStatus(orderID string, status string) error
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("failed to update order status: received status code %d", resp.StatusCode)
 	}
 
